@@ -1,1 +1,216 @@
 <!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noleggio&Usato - Los Santos RP</title>
+<style>
+:root{--accent:#FFD700;--bg-overlay: rgba(0,0,0,0.65);--card-bg: rgba(0,0,0,0.6);}
+body{margin:0;font-family: Arial, Helvetica, sans-serif;background: url('https://i.imgur.com/3JZ7iWc.jpg') center/cover no-repeat fixed;color:#fff;}
+header{background:var(--bg-overlay);padding:20px;text-align:center;}
+header h1{ margin:0; color:var(--accent); font-size:2.2em; }
+header p{ margin:6px 0 0; opacity:0.9; }
+.container{ padding:20px; max-width:1100px; margin:0 auto; }
+.top-actions{ display:flex; gap:10px; justify-content:center; margin:18px 0; flex-wrap:wrap;}
+.btn{ background:var(--accent); color:#000; padding:10px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:700; }
+.btn.secondary{ background:transparent; border:2px solid var(--accent); color:var(--accent); }
+.layout{ display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
+.card{ background:var(--card-bg); padding:14px; border-radius:10px; width:320px; box-sizing:border-box; border:2px solid rgba(255,215,0,0.08);}
+.card h3{ margin:0 0 8px; color:var(--accent); }
+label{ display:block; margin:8px 0 4px; font-size:0.9em; }
+input[type="text"], input[type="password"], input[type="number"], textarea, select, input[type="date"]{ width:100%; padding:8px; border-radius:6px; border:none; box-sizing:border-box;}
+.small{font-size:0.9em; color:#ddd; margin-top:8px;}
+.list{ max-height:360px; overflow:auto; margin-top:8px; }
+.list .item{ padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); }
+.muted{ color:#bbb; font-size:0.9em; }
+.vetrina{ display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-top:20px;}
+.auto{ background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; width:250px; text-align:center; border:2px solid rgba(255,255,255,0.03); }
+.auto img{ width:100%; height:140px; object-fit:cover; border-radius:6px; }
+.auto h4{ margin:8px 0 4px; color:var(--accent); }
+.auto p{ margin:4px 0; color:#fff; font-weight:600; }
+footer{ text-align:center; margin:30px 0; color:#ddd; font-size:0.9em; }
+@media(max-width:760px){ .card{ width:100%; } .auto{ width:48%; } }
+@media(max-width:420px){ .auto{ width:100%; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Noleggio&Usato</h1>
+  <p>Vetrina ufficiale - Los Santos RP</p>
+</header>
+
+<div class="container">
+  <div class="top-actions">
+    <button class="btn" id="showRegisterBtn">Registrazione Dipendente</button>
+    <button class="btn secondary" id="showLoginBtn">Login Dipendente</button>
+    <button class="btn" id="showVetrinaBtn">Vetrina</button>
+    <button class="btn" id="showAdminBtn">Pannello Admin</button>
+  </div>
+
+  <div class="layout">
+    <!-- Registrazione Dipendente -->
+    <div class="card" id="registerCard" style="display:none;">
+      <h3>Registrazione Dipendente</h3>
+      <div class="small">L'account sarà <strong>in attesa di approvazione</strong> dagli admin.</div>
+      <label>Nome utente (IC)</label>
+      <input type="text" id="regUsername" placeholder="es. Marco_RP">
+      <label>Password</label>
+      <input type="password" id="regPassword" placeholder="minimo 4 caratteri">
+      <label>Ruolo (es. Autista / Venditore)</label>
+      <input type="text" id="regRole" placeholder="Ruolo">
+      <button class="btn" id="regSubmit">Invia registrazione</button>
+      <div class="small" id="regMsg"></div>
+    </div>
+
+    <!-- Login Dipendente -->
+    <div class="card" id="loginCard" style="display:none;">
+      <h3>Login Dipendente</h3>
+      <label>Nome utente</label>
+      <input type="text" id="loginUser" placeholder="Nome utente">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Password">
+      <button class="btn" id="loginSubmit">Accedi</button>
+      <div class="small" id="loginMsg"></div>
+    </div>
+
+    <!-- Dashboard Dipendente -->
+    <div class="card" id="empDashboard" style="display:none;">
+      <h3>Dashboard Dipendente</h3>
+      <div class="small">Connesso come <span id="empName"></span> — Stato: <span id="empStatus"></span></div>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:10px 0;">
+      <h4>Inserisci fattura IC</h4>
+      <label>Cliente (IC)</label>
+      <input type="text" id="invCliente" placeholder="Nome cliente">
+      <label>Importo ($)</label>
+      <input type="number" id="invImporto" placeholder="es. 25000" min="0">
+      <label>Descrizione</label>
+      <textarea id="invDesc" rows="3" placeholder="es. Noleggio Sultan RS 24h"></textarea>
+      <button class="btn" id="invSubmit">Registra fattura</button>
+      <div class="small" id="invMsg"></div>
+      <div style="margin-top:10px;">
+        <h4>Le tue fatture</h4>
+        <div class="list" id="empInvoicesList"></div>
+      </div>
+      <div style="margin-top:10px;">
+        <button class="btn secondary" id="empLogout">Logout</button>
+      </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="card" id="adminCard" style="display:none;">
+      <h3>Pannello Admin</h3>
+      <div class="small">Accesso admin protetto da password.</div>
+      <div id="adminControls" style="display:none;">
+        <label>Password admin (per cambiare):</label>
+        <input type="password" id="adminPassSet" placeholder="Lascia vuoto per mantenere">
+        <button class="btn" id="adminChangePassBtn">Cambia password admin</button>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:10px 0;">
+        <h4>Percentuali commissione</h4>
+        <label>Percentuale globale (%)</label>
+        <input type="number" id="globalPercent" min="0" max="100">
+        <button class="btn" id="setGlobalPercent">Salva globale</button>
+        <div class="small" id="globalMsg"></div>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:10px 0;">
+        <h4>Gestione dipendenti</h4>
+        <div class="list" id="adminEmployeesList"></div>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:10px 0;">
+        <h4>Fatture registrate</h4>
+        <div class="list" id="adminInvoicesList"></div>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:10px 0;">
+        <h4>Stipendi Settimanali</h4>
+        <label>Data inizio:</label>
+        <input type="date" id="salaryStart">
+        <label>Data fine:</label>
+        <input type="date" id="salaryEnd">
+        <button class="btn" id="calcSalaryBtn">Calcola stipendi</button>
+        <div class="list" id="salaryList"></div>
+      </div>
+    </div>
+
+    <!-- Vetrina (pubblica) -->
+    <div class="card" id="vetrinaCard">
+      <h3>Vetrina veicoli</h3>
+      <div class="small">Solo admin e dipendenti vedono le modifiche in backend. Qui è la vetrina pubblica.</div>
+      <div class="vetrina" id="vetrinaGrid"></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Demo &middot; Noleggio&Usato - Los Santos RP</footer>
+
+<script>
+// ---------- STORAGE & DEFAULTS ----------
+const LS_USERS='nr_users_v1';
+const LS_INVOICES='nr_invoices_v1';
+const LS_GLOBAL='nr_global_v1';
+const ADMIN_DEFAULT_PASSWORD='admin123';
+if(!localStorage.getItem(LS_USERS)) localStorage.setItem(LS_USERS, JSON.stringify([]));
+if(!localStorage.getItem(LS_INVOICES)) localStorage.setItem(LS_INVOICES, JSON.stringify([]));
+if(!localStorage.getItem(LS_GLOBAL)) localStorage.setItem(LS_GLOBAL, JSON.stringify({adminPassword:ADMIN_DEFAULT_PASSWORD, globalPercent:10}));
+function lsGet(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f;}}
+function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+// ---------- Vetrina demo ----------
+const demoVehicles=[{name:'Sultan RS', img:'https://i.imgur.com/5QZ0m4K.jpg', price:'$25,000'},{name:'Baller', img:'https://i.imgur.com/8zYx9lV.jpg', price:'$40,000'},{name:'Buffalo', img:'https://i.imgur.com/Z2w2cV7.jpg', price:'$30,000'},{name:'Comet', img:'https://i.imgur.com/0b5oQ6x.jpg', price:'$60,000'}];
+function renderVetrina(){const grid=$('vetrinaGrid'); grid.innerHTML=''; demoVehicles.forEach(v=>{const d=document.createElement('div'); d.className='auto'; d.innerHTML=`<img src="${v.img}" alt="${v.name}"><h4>${v.name}</h4><p>${v.price}</p>`; grid.appendChild(d);});}
+renderVetrina();
+
+// ---------- NAV ----------
+$('showRegisterBtn').onclick=()=>{show($('registerCard'));hideAllExcept('registerCard');};
+$('showLoginBtn').onclick=()=>{show($('loginCard'));hideAllExcept('loginCard');};
+$('showVetrinaBtn').onclick=()=>{show($('vetrinaCard'));hideAllExcept('vetrinaCard');};
+$('showAdminBtn').onclick=adminAccessPrompt;
+function hideAllExcept(id){['registerCard','loginCard','vetrinaCard','empDashboard','adminCard'].forEach(c=>{if(c===id) show($(c)); else hide($(c));});}
+function $(id){return document.getElementById(id);}
+function show(el){el.style.display='block';}
+function hide(el){el.style.display='none';}
+
+// ---------- REGISTRAZIONE ----------
+$('regSubmit').onclick=()=>{
+  const u=$('regUsername').value.trim(),p=$('regPassword').value,role=$('regRole').value.trim()||'Dipendente';
+  if(!u||p.length<4){$('regMsg').textContent='Username e password (min 4) richiesti.';return;}
+  let users=lsGet(LS_USERS,[]);
+  if(users.find(x=>x.username.toLowerCase()===u.toLowerCase())){$('regMsg').textContent='Username già presente.';return;}
+  users.push({username:u,password:p,role:role,status:'pending',commission:null,id:Date.now()+Math.floor(Math.random()*999)});
+  lsSet(LS_USERS,users);
+  $('regMsg').textContent='Registrazione inviata. Attendi approvazione admin.';
+  $('regUsername').value=''; $('regPassword').value=''; $('regRole').value='';
+  renderAdminEmployees();
+};
+
+// ---------- LOGIN ----------
+let currentEmployee=null;
+$('loginSubmit').onclick=()=>{
+  const u=$('loginUser').value.trim(),p=$('loginPass').value;
+  if(!u||!p){$('loginMsg').textContent='Inserisci credenziali.';return;}
+  const users=lsGet(LS_USERS,[]),emp=users.find(x=>x.username.toLowerCase()===u.toLowerCase()&&x.password===p);
+  if(!emp){$('loginMsg').textContent='Credenziali errate.';return;}
+  if(emp.status!=='approved'){$('loginMsg').textContent='Account in attesa di approvazione.';return;}
+  currentEmployee=emp; $('loginMsg').textContent=''; openEmployeeDashboard();
+};
+function openEmployeeDashboard(){hideAllExcept('empDashboard'); show($('empDashboard')); $('empName').textContent=currentEmployee.username+' ('+currentEmployee.role+')'; $('empStatus').textContent=currentEmployee.status; renderEmployeeInvoices();}
+$('empLogout').onclick=()=>{currentEmployee=null; hide($('empDashboard')); show($('vetrinaCard'));};
+
+// ---------- FATTURE ----------
+$('invSubmit').onclick=()=>{
+  const cliente=$('invCliente').value.trim(),importo=parseFloat($('invImporto').value),desc=$('invDesc').value.trim();
+  if(!cliente||isNaN(importo)||importo<=0){$('invMsg').textContent='Compila cliente e importo valido.';return;}
+  const invoices=lsGet(LS_INVOICES,[]),global=lsGet(LS_GLOBAL,{}),users=lsGet(LS_USERS,[]),emp=users.find(u=>u.id===currentEmployee.id);
+  const percent=(emp && typeof emp.commission==='number')?emp.commission:(global.globalPercent||0);
+  const commissionAmount=+(importo*(percent/100)).toFixed(2);
+  const inv={id:'INV'+Date.now()+Math.floor(Math.random()*99),employeeId:currentEmployee.id,employeeName:currentEmployee.username,cliente,importo,desc,date:new Date().toISOString(),percentUsed:percent,commissionAmount};
+  invoices.push(inv); lsSet(LS_INVOICES,invoices);
+  $('invMsg').textContent=`Fattura registrata. Commissione: ${percent}% -> $${commissionAmount}`;
+  $('invCliente').value='';$('invImporto').value='';$('invDesc').value='';
+  renderEmployeeInvoices(); renderAdminInvoices();
+};
+function renderEmployeeInvoices(){const list=$('empInvoicesList'); list.innerHTML=''; if(!currentEmployee)return; const all=lsGet(LS_INVOICES,[]); const mine=all.filter(i=>i.employeeId===currentEmployee.id).sort((a,b)=>b.date.localeCompare(a.date)); if(mine.length===0){list.innerHTML='<div class="muted">Nessuna fattura ancora.</div>';return;} mine.forEach(i=>{const div=document.createElement('div'); div.className='item'; div.innerHTML=`<strong>${i.id}</strong> • ${new Date(i.date).toLocaleString()}<br>Cliente: ${i.cliente} • Importo: $${i.importo} • Commissione: ${i.percentUsed}% ($${i.commissionAmount})<br><span class="muted">${i.desc}</span>`; list.appendChild(div);});}
+
+// ---------- ADMIN PANEL + STIPENDI ----------
+function adminAccessPrompt(){hideAllExcept('adminCard'); show($('adminCard')); let global=lsGet(LS_GLOBAL,{}); let p=prompt('Password admin:'); if(p===null){ hide($('adminCard')); show($('vetrinaCard')); return;} if(p===global.adminPassword){ show($('adminControls')); renderAdminEmployees(); renderAdminInvoices(); $('globalPercent').value=global.globalPercent||0;} else{ alert('Password admin errata.'); hide($('adminCard')); show($('vetrinaCard')); }}
+function renderAdminEmployees(){const list=$('adminEmployeesList'); list.innerHTML=''; const users=lsGet(LS_USERS,[]); if(users.length===0){list.innerHTML='<div class="muted">Nessun dipendente registrato.</div>';return;} users.forEach(u=>{const div=document.createElement('div'); div.className='item'; div.innerHTML=`${u.username} (${u.role}) — Stato: ${u.status} <button onclick="approveUser(${u.id})">Approva</button>`; list.appendChild(div);});}
+function approveUser(id){let users=lsGet(LS_USERS,[]); const u=users.find(x=>x.id===id); if(u){u.status='approved'; lsSet(LS_USERS,users); renderAdminEmployees();}}
+
+function renderAdminInvoices(){const list=$('adminInvoicesList'); list.innerHTML=''; const invoices=lsGet(LS_INVOICES,[]); if(invoices.length===0){list.innerHTML='<div class="muted">Nessuna fattura registrata.</div>'; return;}
